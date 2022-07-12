@@ -21,6 +21,8 @@
 #include <Forms/TESObjectCELL.h>
 #include <Forms/TESWorldSpace.h>
 
+#include <Misc/Sky.h>
+
 #include <inttypes.h>
 
 ObjectService::ObjectService(World& aWorld, entt::dispatcher& aDispatcher, TransportService& aTransport) 
@@ -66,6 +68,46 @@ void ObjectService::OnDisconnected(const DisconnectedEvent&) noexcept
 
 void ObjectService::OnCellChange(const CellChangeEvent& acEvent) noexcept
 {
+
+    Sky* sky = Sky::GetInstance();
+
+    //spdlog::warn("Sky has this: {:X}", sky);
+
+    if (sky)
+    {
+        spdlog::warn("Got sky");
+        if (sky->currentWeather)
+        {
+            spdlog::warn("Got current weather");
+            if (sky->currentWeather->formID)
+            {
+                spdlog::warn("Got weather form id {:X}", sky->currentWeather->formID);
+
+                uint32_t fid = sky->currentWeather->formID;
+
+                if (fid == 0x10A240)
+                {
+                    sky->currentWeather = Cast<TESWeather>(TESForm::GetById(0x10A241));
+                }
+                else if (fid == 0x10A241)
+                {
+                    sky->currentWeather = Cast<TESWeather>(TESForm::GetById(0x10A243));
+                }
+                else if (fid == 0x10A243)
+                {
+                    sky->currentWeather = Cast<TESWeather>(TESForm::GetById(0x10A240));
+                }
+
+            }
+        }
+    }
+    else
+    {
+        spdlog::warn("No sky found");
+    }
+
+    spdlog::warn("This is the weather formid: {:X}", sky->currentWeather->formID);
+
     if (!m_transport.IsConnected())
         return;
 
